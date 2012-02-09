@@ -21,7 +21,7 @@ iniFile.Section("foo").Get("baz"); // "qux"
 		
 foreach (var section in iniFile.Sections())
 	Console.WriteLine(section.Name); // foo
-								     // bar
+								     // foo2
 ```
 
 ### Writing an INI file	
@@ -29,11 +29,11 @@ foreach (var section in iniFile.Sections())
 ```csharp
 var iniFile = new IniFile();
 	
-iniFile.Section("Foo").Comment = "This is foo";
-iniFile.Section("Foo").Set("bar", "1");
-iniFile.Section("Foo").Set("baz", "qux", comment: "baz is qux");
+iniFile.Section("foo").Comment = "This is foo";
+iniFile.Section("foo").Set("bar", "1");
+iniFile.Section("foo").Set("baz", "qux", comment: "baz is qux");
 
-iniFile.Section("Foo2").Set("bar", "2");
+iniFile.Section("foo2").Set("bar", "2");
 
 iniFile.Save("foo.ini");
 
@@ -42,7 +42,16 @@ iniFile.Save("foo.ini");
 // bar=1
 // ;baz is qux
 // baz=qux
+//
 // [foo2]
 // bar=2
-```
 
+iniFile.Section("foo").RemoveProperty("bar"); // or iniFile.Section("foo").Set("bar", null);
+iniFile.RemoveSection("foo2");
+iniFile.Save("foo.ini");
+
+// ;This is foo
+// [foo]
+// ;baz is qux
+// baz=qux
+```
