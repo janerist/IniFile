@@ -102,9 +102,9 @@ namespace YourNamespace
         }
     }
 
-    public class IniFile
+    public class IniFile : IEnumerable<IniSection>
     {
-        private readonly IList<IniSection> _sections;
+        private readonly IDictionary<string, IniSection> _sections;
 
         /// <summary>
         /// If True, writes extra spacing between the property name and the property value.
@@ -117,7 +117,7 @@ namespace YourNamespace
         /// </summary>
         public IniFile()
         {
-            _sections = new List<IniSection>();
+            _sections = new Dictionary<string, IniSection>();
         }
 
         /// <summary>
@@ -164,11 +164,10 @@ namespace YourNamespace
                 if (line.StartsWith("[") && line.EndsWith("]"))
                 {
                     var sectionName = line.Substring(1, line.Length - 2);
-                    section = _sections.SingleOrDefault(x => x.Name == sectionName);
-                    if (section == null)
+                    if (!_sections.ContainsKey(sectionName))
                     {
                         section = new IniSection(sectionName);
-                        _sections.Add(section);
+                        _sections.Add(sectionName, section);
                     }
                     continue;
                 }
@@ -191,23 +190,14 @@ namespace YourNamespace
         /// <returns>A section. If the section doesn't exist, it is created.</returns>
         public IniSection Section(string sectionName)
         {
-            var section = _sections.SingleOrDefault(x => x.Name == sectionName);
-            if (section == null)
+            IniSection section;
+            if (!_sections.TryGetValue(sectionName, out section))
             {
                 section = new IniSection(sectionName);
-                _sections.Add(section);
+                _sections.Add(sectionName, section);
             }
 
             return section;
-        }
-
-        /// <summary>
-        /// Get all sections.
-        /// </summary>
-        /// <returns>An array of all the sections.</returns>
-        public IniSection[] Sections()
-        {
-            return _sections.ToArray();
         }
 
         /// <summary>
@@ -216,9 +206,8 @@ namespace YourNamespace
         /// <param name="sectionName">Name of the section to remove.</param>
         public void RemoveSection(string sectionName)
         {
-            var section = _sections.SingleOrDefault(x => x.Name == sectionName);
-            if (section != null)
-                _sections.Remove(section);
+            if (_sections.ContainsKey(sectionName))
+                _sections.Remove(sectionName);
         }
 
         /// <summary>
@@ -237,7 +226,7 @@ namespace YourNamespace
         /// <param name="writer">A TextWriter instance.</param>
         public void Save(TextWriter writer)
         {
-            foreach (var section in _sections)
+            foreach (var section in _sections.Values)
             {
                 if (section.Count == 0)
                     continue;
@@ -258,6 +247,16 @@ namespace YourNamespace
 
                 writer.WriteLine();
             }
+        }
+
+        public IEnumerator<IniSection> GetEnumerator()
+        {
+            return _sections.Values.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }
