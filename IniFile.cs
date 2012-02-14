@@ -158,7 +158,7 @@ namespace YourNamespace
                     continue;
 
                 // skip comments
-                if (line.StartsWith(";"))
+                if (line.StartsWith(";") || line.StartsWith("#"))
                     continue;
 
                 if (line.StartsWith("[") && line.EndsWith("]"))
