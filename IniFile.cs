@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -174,7 +175,7 @@ namespace YourNamespace
 
                 if (section != null)
                 {
-                    var keyValue = line.Split('=');
+                    var keyValue = line.Split(new[] { "=" }, 2, StringSplitOptions.RemoveEmptyEntries);
                     if (keyValue.Length != 2)
                         continue;
 

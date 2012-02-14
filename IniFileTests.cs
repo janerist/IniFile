@@ -118,5 +118,12 @@ namespace YourNamespace
 
             Assert.That(File.ReadAllText(tempFilename), Is.EqualTo("[Foo]\r\nbar=1\r\n\r\n"));
         }
+
+        [Test]
+        public void TestSplitsOnFirstEqualSign()
+        {
+            var iniFile = new IniFile(new StringReader("[Foo]\nbar = -i 3 -f 5 s=3 -n=9 -f=bar"));
+            Assert.That(iniFile.Section("Foo").Get("bar"), Is.EqualTo("-i 3 -f 5 s=3 -n=9 -f=bar"));
+        }
     }
 }
