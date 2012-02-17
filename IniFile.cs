@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -24,15 +23,9 @@ namespace YourNamespace
         public string Comment { get; set; }
     }
 
-    public class IniSection : IEnumerable<IniProperty>
+    public class IniSection
     {
         private readonly IDictionary<string, IniProperty> _properties;
-
-        public IniSection(string name)
-        {
-            Name = name;
-            _properties = new Dictionary<string, IniProperty>();
-        }
 
         /// <summary>
         /// Section name.
@@ -43,6 +36,24 @@ namespace YourNamespace
         /// Set the comment to display above this section.
         /// </summary>
         public string Comment { get; set; }
+
+        /// <summary>
+        /// Get the properties in this section.
+        /// </summary>
+        public IniProperty[] Properties
+        {
+            get { return _properties.Values.ToArray(); }
+        }
+
+        /// <summary>
+        /// Create a new IniSection.
+        /// </summary>
+        /// <param name="name"></param>
+        public IniSection(string name)
+        {
+            Name = name;
+            _properties = new Dictionary<string, IniProperty>();
+        }
 
         /// <summary>
         /// Get a property value.
@@ -81,29 +92,18 @@ namespace YourNamespace
             }
         }
 
+        /// <summary>
+        /// Remove a property from this section.
+        /// </summary>
+        /// <param name="propertyName">The property name to remove.</param>
         public void RemoveProperty(string propertyName)
         {
             if (_properties.ContainsKey(propertyName))
                 _properties.Remove(propertyName);
         }
-
-        /// <summary>
-        /// Return the number of properties of this section.
-        /// </summary>
-        public int Count { get { return _properties.Count; } }
-
-        public IEnumerator<IniProperty> GetEnumerator()
-        {
-            return _properties.Values.GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
     }
 
-    public class IniFile : IEnumerable<IniSection>
+    public class IniFile
     {
         private readonly IDictionary<string, IniSection> _sections;
 
@@ -112,7 +112,19 @@ namespace YourNamespace
         /// (foo=bar) vs (foo = bar)
         /// </summary>
         public bool WriteSpacingBetweenNameAndValue { get; set; }
+
+        /// <summary>
+        /// The character a comment line will begin with. Default '#'.
+        /// </summary>
         public char CommentChar { get; set; }
+
+        /// <summary>
+        /// Get the sections in this IniFile.
+        /// </summary>
+        public IniSection[] Sections
+        {
+            get { return _sections.Values.ToArray(); }
+        }
 
         /// <summary>
         /// Create a new IniFile instance.
@@ -231,7 +243,7 @@ namespace YourNamespace
         {
             foreach (var section in _sections.Values)
             {
-                if (section.Count == 0)
+                if (section.Properties.Length == 0)
                     continue;
 
                 if (section.Comment != null)
@@ -239,7 +251,7 @@ namespace YourNamespace
 
                 writer.WriteLine("[{0}]", section.Name);
 
-                foreach (var property in section)
+                foreach (var property in section.Properties)
                 {
                     if (property.Comment != null)
                         writer.WriteLine("{0} {1}", CommentChar, property.Comment);
@@ -250,16 +262,6 @@ namespace YourNamespace
 
                 writer.WriteLine();
             }
-        }
-
-        public IEnumerator<IniSection> GetEnumerator()
-        {
-            return _sections.Values.GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
         }
     }
 }

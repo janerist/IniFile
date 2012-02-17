@@ -19,7 +19,7 @@ var iniFile = new IniFile("foo.ini");
 iniFile.Section("foo").Get("bar"); // "1"
 iniFile.Section("foo").Get("baz"); // "qux"
 		
-foreach (var section in iniFile)
+foreach (var section in iniFile.Sections)
 	Console.WriteLine(section.Name); // foo
 								     // foo2
 ```

@@ -1,5 +1,4 @@
 using System.IO;
-using System.Linq;
 using NUnit.Framework;
 
 namespace YourNamespace
@@ -21,9 +20,9 @@ namespace YourNamespace
         public void TestCreatesSection()
         {
             var iniFile = new IniFile(new StringReader("[Foo]\nbar=1\nbaz=qux"));
-            var category = iniFile.Section("foo");
-            Assert.That(category, Is.Not.Null);
-            Assert.That(category.Count, Is.EqualTo(0));
+            var section = iniFile.Section("foo");
+            Assert.That(section, Is.Not.Null);
+            Assert.That(section.Properties.Length, Is.EqualTo(0));
         }
 
         [Test]
@@ -44,16 +43,16 @@ namespace YourNamespace
         public void TestSkipsComments()
         {
             var iniFile = new IniFile(new StringReader("[Foo]\n;comment\nbar=1\nbaz=qux"));
-            Assert.That(iniFile.Count(), Is.EqualTo(1));
-            Assert.That(iniFile.First().Count, Is.EqualTo(2));
+            Assert.That(iniFile.Sections.Length, Is.EqualTo(1));
+            Assert.That(iniFile.Sections[0].Properties.Length, Is.EqualTo(2));
         }
 
         [Test]
         public void TestMergesSectionsWithSameName()
         {
             var iniFile = new IniFile(new StringReader("[Foo]\nbar=1\nbaz=qux\n[Foo]\nyes=true\n[Foo2]\nno=false"));
-            Assert.That(iniFile.Count(), Is.EqualTo(2));
-            Assert.That(iniFile.First().Count, Is.EqualTo(3));
+            Assert.That(iniFile.Sections.Length, Is.EqualTo(2));
+            Assert.That(iniFile.Sections[0].Properties.Length, Is.EqualTo(3));
             Assert.That(iniFile.Section("Foo").Get("yes"), Is.EqualTo("true"));
         }
 
@@ -62,7 +61,7 @@ namespace YourNamespace
         {
             var iniFile = new IniFile(new StringReader("[Foo]\nbar=1\nbaz=qux\n[Foo]\nyes=true\n[Foo2]\nno=false"));
             iniFile.RemoveSection("Foo2");
-            Assert.That(iniFile.Count(), Is.EqualTo(1));
+            Assert.That(iniFile.Sections.Length, Is.EqualTo(1));
         }
 
         [Test]
