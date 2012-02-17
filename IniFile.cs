@@ -112,6 +112,7 @@ namespace YourNamespace
         /// (foo=bar) vs (foo = bar)
         /// </summary>
         public bool WriteSpacingBetweenNameAndValue { get; set; }
+        public char CommentChar { get; set; }
 
         /// <summary>
         /// Create a new IniFile instance.
@@ -119,6 +120,7 @@ namespace YourNamespace
         public IniFile()
         {
             _sections = new Dictionary<string, IniSection>();
+            CommentChar = '#';
         }
 
         /// <summary>
@@ -233,14 +235,14 @@ namespace YourNamespace
                     continue;
 
                 if (section.Comment != null)
-                    writer.WriteLine(";" + section.Comment);
+                    writer.WriteLine("{0} {1}", CommentChar, section.Comment);
 
                 writer.WriteLine("[{0}]", section.Name);
 
                 foreach (var property in section)
                 {
                     if (property.Comment != null)
-                        writer.WriteLine(";" + property.Comment);
+                        writer.WriteLine("{0} {1}", CommentChar, property.Comment);
 
                     var format = WriteSpacingBetweenNameAndValue ? "{0} = {1}" : "{0}={1}";
                     writer.WriteLine(format, property.Name, property.Value);

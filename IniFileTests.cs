@@ -93,7 +93,7 @@ namespace YourNamespace
             iniFile.Section("Foo").Set("baz", "qux", comment: "bazy baz");
             iniFile.Save(tempFilename);
 
-            Assert.That(File.ReadAllText(tempFilename), Is.EqualTo(";This is foo\r\n[Foo]\r\nbar=1\r\n;bazy baz\r\nbaz=qux\r\n\r\n"));
+            Assert.That(File.ReadAllText(tempFilename), Is.EqualTo("# This is foo\r\n[Foo]\r\nbar=1\r\n# bazy baz\r\nbaz=qux\r\n\r\n"));
         }
 
         [Test]
@@ -124,6 +124,23 @@ namespace YourNamespace
         {
             var iniFile = new IniFile(new StringReader("[Foo]\nbar = -i 3 -f 5 s=3 -n=9 -f=bar"));
             Assert.That(iniFile.Section("Foo").Get("bar"), Is.EqualTo("-i 3 -f 5 s=3 -n=9 -f=bar"));
+        }
+
+        [Test]
+        public void TestChangeCommentChar()
+        {
+            var tempFilename = Path.GetTempFileName();
+            var iniFile = new IniFile();
+            iniFile.Section("Foo").Comment = "Foo comment";
+            iniFile.Section("Foo").Set("bar", "1", "Bar comment");
+            
+            iniFile.Save(tempFilename);
+
+            Assert.That(File.ReadAllText(tempFilename), Is.EqualTo("# Foo comment\r\n[Foo]\r\n# Bar comment\r\nbar=1\r\n\r\n"));
+
+            iniFile.CommentChar = ';';
+            iniFile.Save(tempFilename);
+            Assert.That(File.ReadAllText(tempFilename), Is.EqualTo("; Foo comment\r\n[Foo]\r\n; Bar comment\r\nbar=1\r\n\r\n"));
         }
     }
 }

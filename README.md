@@ -2,7 +2,7 @@
 # IniFile
 
 IniFile is a single C# file that offers reading from and writing to INI files.
-You can drop it straight into your project without adding any DLL references.
+You can drop it straight into your project; no DLL references needed.
 
 ## Basic usage
 
@@ -37,10 +37,10 @@ iniFile.Section("foo2").Set("bar", "2");
 
 iniFile.Save("foo.ini");
 
-// ;This is foo
+// # This is foo
 // [foo]
 // bar=1
-// ;baz is qux
+// # baz is qux
 // baz=qux
 //
 // [foo2]
@@ -50,8 +50,8 @@ iniFile.Section("foo").RemoveProperty("bar"); // or iniFile.Section("foo").Set("
 iniFile.RemoveSection("foo2");
 iniFile.Save("foo.ini");
 
-// ;This is foo
+// # This is foo
 // [foo]
-// ;baz is qux
+// # baz is qux
 // baz=qux
 ```
