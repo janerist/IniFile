@@ -1,7 +1,7 @@
 using System.IO;
 using NUnit.Framework;
 
-namespace YourNamespace
+namespace IniFile.Tests
 {
     [TestFixture]
     public class IniFileTests
@@ -140,6 +140,28 @@ namespace YourNamespace
             iniFile.CommentChar = ';';
             iniFile.Save(tempFilename);
             Assert.That(File.ReadAllText(tempFilename), Is.EqualTo("; Foo comment\r\n[Foo]\r\n; Bar comment\r\nbar=1\r\n\r\n"));
+        }
+
+        [Test]
+        public void TestToString()
+        {
+            var iniFile = new IniFile();
+            iniFile.Section("Foo").Comment = "This is foo";
+            iniFile.Section("Foo").Set("bar", "1");
+            iniFile.Section("Foo").Set("baz", "qux", comment: "bazy baz");
+
+            Assert.That(iniFile.ToString(), Is.EqualTo("# This is foo\r\n[Foo]\r\nbar=1\r\n# bazy baz\r\nbaz=qux\r\n\r\n"));
+        }
+
+        [Test]
+        public void TestGenericGet()
+        {
+            var iniFile = new IniFile();
+            iniFile.Section("Foo").Set("bar", "1");
+
+            var value = iniFile.Section("Foo").Get<int>("bar");
+
+            Assert.That(value, Is.EqualTo(1));
         }
     }
 }

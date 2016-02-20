@@ -2,7 +2,6 @@
 # IniFile
 
 IniFile is a single C# file that offers reading from and writing to INI files.
-You can drop it straight into your project; no DLL references needed.
 
 ## Basic usage
 
@@ -16,7 +15,7 @@ You can drop it straight into your project; no DLL references needed.
 // bar=2
 		
 var iniFile = new IniFile("foo.ini");
-iniFile.Section("foo").Get("bar"); // "1"
+iniFile.Section("foo").Get<int>("bar"); // 1
 iniFile.Section("foo").Get("baz"); // "qux"
 		
 foreach (var section in iniFile.Sections)

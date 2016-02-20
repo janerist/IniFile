@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 
-namespace YourNamespace
+namespace IniFile
 {
+    /// <summary>
+    /// Represents a property in an INI file.
+    /// </summary>
     public class IniProperty
     {
         /// <summary>
@@ -24,6 +26,9 @@ namespace YourNamespace
         public string Comment { get; set; }
     }
 
+    /// <summary>
+    /// Represents a section in an INI file.
+    /// </summary>
     public class IniSection
     {
         private readonly IDictionary<string, IniProperty> _properties;
@@ -41,10 +46,7 @@ namespace YourNamespace
         /// <summary>
         /// Get the properties in this section.
         /// </summary>
-        public IniProperty[] Properties
-        {
-            get { return _properties.Values.ToArray(); }
-        }
+        public IniProperty[] Properties => _properties.Values.ToArray();
 
         /// <summary>
         /// Create a new IniSection.
@@ -69,10 +71,17 @@ namespace YourNamespace
             return null;
         }
 
+        /// <summary>
+        /// Get a property value, coercing the type of the value
+        /// into the type given by the generic parameter.
+        /// </summary>
+        /// <param name="name">Name of the property.</param>
+        /// <typeparam name="T">The type to coerce the value into.</typeparam>
+        /// <returns></returns>
         public T Get<T>(string name)
         {
             if (_properties.ContainsKey(name))
-                return (T)Convert.ChangeType( _properties[name].Value, typeof(T));
+                return (T)Convert.ChangeType(_properties[name].Value, typeof(T));
 
             return default(T);
         }
@@ -100,7 +109,7 @@ namespace YourNamespace
                     _properties[name].Comment = comment;
             }
         }
-
+        
         /// <summary>
         /// Remove a property from this section.
         /// </summary>
@@ -112,6 +121,9 @@ namespace YourNamespace
         }
     }
 
+    /// <summary>
+    /// Represenst an INI file that can be read from or written to.
+    /// </summary>
     public class IniFile
     {
         private readonly IDictionary<string, IniSection> _sections;
@@ -237,43 +249,50 @@ namespace YourNamespace
         /// <param name="path">Path to the INI file to create.</param>
         public void Save(string path)
         {
-            var txt = BuildIni();
-            File.AppendAllText(path, txt);  
+            using (var file = new StreamWriter(path))
+                Save(file);
         }
 
         /// <summary>
         /// Create a new INI file.
         /// </summary>
-        private string BuildIni()
+        /// <param name="writer">A TextWriter instance.</param>
+        public void Save(TextWriter writer)
         {
-            var sb = new StringBuilder();
             foreach (var section in _sections.Values)
             {
                 if (section.Properties.Length == 0)
                     continue;
-                if (sb.Length > 0)
-                    sb.AppendLine();
 
                 if (section.Comment != null)
-                    sb.AppendLine($"{CommentChar} {section.Comment}");
+                    writer.WriteLine($"{CommentChar} {section.Comment}");
 
-                sb.AppendLine($"[{section.Name}]");
+                writer.WriteLine($"[{section.Name}]");
 
                 foreach (var property in section.Properties)
                 {
                     if (property.Comment != null)
-                        sb.AppendLine($"{CommentChar} {property.Comment}");
+                        writer.WriteLine($"{CommentChar} {property.Comment}");
 
                     var format = WriteSpacingBetweenNameAndValue ? "{0} = {1}" : "{0}={1}";
-                    sb.AppendLine(string.Format(format, property.Name, property.Value));
+                    writer.WriteLine(format, property.Name, property.Value);
                 }
+
+                writer.WriteLine();
             }
-            return sb.ToString();
         }
 
+        /// <summary>
+        /// Returns the content of this INI file as a string.
+        /// </summary>
+        /// <returns>The text content of this INI file.</returns>
         public override string ToString()
         {
-            return BuildIni();
+            using (var sw = new StringWriter())
+            {
+                Save(sw);
+                return sw.ToString();
+            }
         }
     }
 }
