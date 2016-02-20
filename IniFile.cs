@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace YourNamespace
 {
@@ -68,6 +69,14 @@ namespace YourNamespace
             return null;
         }
 
+        public T Get<T>(string name)
+        {
+            if (_properties.ContainsKey(name))
+                return (T)Convert.ChangeType( _properties[name].Value, typeof(T));
+
+            return default(T);
+        }
+
         /// <summary>
         /// Set a property value.
         /// </summary>
@@ -121,10 +130,7 @@ namespace YourNamespace
         /// <summary>
         /// Get the sections in this IniFile.
         /// </summary>
-        public IniSection[] Sections
-        {
-            get { return _sections.Values.ToArray(); }
-        }
+        public IniSection[] Sections => _sections.Values.ToArray();
 
         /// <summary>
         /// Create a new IniFile instance.
@@ -231,37 +237,43 @@ namespace YourNamespace
         /// <param name="path">Path to the INI file to create.</param>
         public void Save(string path)
         {
-            using (var file = new StreamWriter(path))
-                Save(file);
+            var txt = BuildIni();
+            File.AppendAllText(path, txt);  
         }
 
         /// <summary>
         /// Create a new INI file.
         /// </summary>
-        /// <param name="writer">A TextWriter instance.</param>
-        public void Save(TextWriter writer)
+        private string BuildIni()
         {
+            var sb = new StringBuilder();
             foreach (var section in _sections.Values)
             {
                 if (section.Properties.Length == 0)
                     continue;
+                if (sb.Length > 0)
+                    sb.AppendLine();
 
                 if (section.Comment != null)
-                    writer.WriteLine("{0} {1}", CommentChar, section.Comment);
+                    sb.AppendLine($"{CommentChar} {section.Comment}");
 
-                writer.WriteLine("[{0}]", section.Name);
+                sb.AppendLine($"[{section.Name}]");
 
                 foreach (var property in section.Properties)
                 {
                     if (property.Comment != null)
-                        writer.WriteLine("{0} {1}", CommentChar, property.Comment);
+                        sb.AppendLine($"{CommentChar} {property.Comment}");
 
                     var format = WriteSpacingBetweenNameAndValue ? "{0} = {1}" : "{0}={1}";
-                    writer.WriteLine(format, property.Name, property.Value);
+                    sb.AppendLine(string.Format(format, property.Name, property.Value));
                 }
-
-                writer.WriteLine();
             }
+            return sb.ToString();
+        }
+
+        public override string ToString()
+        {
+            return BuildIni();
         }
     }
 }
