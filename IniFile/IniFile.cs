@@ -21,6 +21,11 @@ namespace IniFile
         public string Value { get; set; }
 
         /// <summary>
+        /// duplicate keys's value
+        /// </summary>
+        public List<string> Values { get; set; }
+
+        /// <summary>
         /// Set the comment to display above this property.
         /// </summary>
         public string Comment { get; set; }
@@ -32,6 +37,7 @@ namespace IniFile
     public class IniSection
     {
         private readonly IDictionary<string, IniProperty> _properties;
+        private readonly bool _allowDuplicate;
 
         /// <summary>
         /// Section name.
@@ -52,9 +58,11 @@ namespace IniFile
         /// Create a new IniSection.
         /// </summary>
         /// <param name="name"></param>
-        public IniSection(string name)
+        /// <param name="allowDuplicate"></param>
+        public IniSection(string name, bool allowDuplicate)
         {
             Name = name;
+            _allowDuplicate = allowDuplicate;
             _properties = new Dictionary<string, IniProperty>();
         }
 
@@ -67,6 +75,19 @@ namespace IniFile
         {
             if (_properties.ContainsKey(name))
                 return _properties[name].Value;
+
+            return null;
+        }
+
+        /// <summary>
+        /// Get a property values.
+        /// </summary>
+        /// <param name="name">Name of the property.</param>
+        /// <returns>Values of the property or null if it doesn't exist.</returns>
+        public List<string> GetValues(string name)
+        {
+            if (_properties.ContainsKey(name))
+                return _properties[name].Values;
 
             return null;
         }
@@ -104,12 +125,24 @@ namespace IniFile
                 _properties.Add(name, new IniProperty { Name = name, Value = value, Comment = comment });
             else
             {
-                _properties[name].Value = value;
-                if (comment != null)
-                    _properties[name].Comment = comment;
+                if (_allowDuplicate && _properties[name].Value != null)
+                {
+                    if (_properties[name].Values == null)
+                    {
+                        _properties[name].Values = new List<string>();
+                        _properties[name].Values.Add(_properties[name].Value);
+                    }
+                    _properties[name].Values.Add(value);
+                }
+                else
+                {
+                    _properties[name].Value = value;
+                    if (comment != null)
+                        _properties[name].Comment = comment;
+                }
             }
         }
-        
+
         /// <summary>
         /// Remove a property from this section.
         /// </summary>
@@ -127,6 +160,7 @@ namespace IniFile
     public class IniFile
     {
         private readonly IDictionary<string, IniSection> _sections;
+        private readonly bool _allowDuplicate;
 
         /// <summary>
         /// If True, writes extra spacing between the property name and the property value.
@@ -147,8 +181,9 @@ namespace IniFile
         /// <summary>
         /// Create a new IniFile instance.
         /// </summary>
-        public IniFile()
+        public IniFile(bool allowDuplicate = false)
         {
+            _allowDuplicate = allowDuplicate;
             _sections = new Dictionary<string, IniSection>();
             CommentChar = '#';
         }
@@ -157,7 +192,8 @@ namespace IniFile
         /// Load an INI file from the file system.
         /// </summary>
         /// <param name="path">Path to the INI file.</param>
-        public IniFile(string path) : this()
+        /// <param name="allowDuplicate"></param>
+        public IniFile(string path, bool allowDuplicate = false) : this(allowDuplicate)
         {
             Load(path);
         }
@@ -166,7 +202,8 @@ namespace IniFile
         /// Load an INI file.
         /// </summary>
         /// <param name="reader">A TextReader instance.</param>
-        public IniFile(TextReader reader) : this()
+        /// <param name="allowDuplicate"></param>
+        public IniFile(TextReader reader, bool allowDuplicate = false) : this(allowDuplicate)
         {
             Load(reader);
         }
@@ -199,7 +236,7 @@ namespace IniFile
                     var sectionName = line.Substring(1, line.Length - 2);
                     if (!_sections.ContainsKey(sectionName))
                     {
-                        section = new IniSection(sectionName);
+                        section = new IniSection(sectionName, _allowDuplicate);
                         _sections.Add(sectionName, section);
                     }
                     continue;
@@ -226,7 +263,7 @@ namespace IniFile
             IniSection section;
             if (!_sections.TryGetValue(sectionName, out section))
             {
-                section = new IniSection(sectionName);
+                section = new IniSection(sectionName, _allowDuplicate);
                 _sections.Add(sectionName, section);
             }
 
@@ -275,7 +312,16 @@ namespace IniFile
                         writer.WriteLine($"{CommentChar} {property.Comment}");
 
                     var format = WriteSpacingBetweenNameAndValue ? "{0} = {1}" : "{0}={1}";
-                    writer.WriteLine(format, property.Name, property.Value);
+                    if (property.Values != null)
+                    {
+                        //duplicate keys
+                        foreach (var valueItem in property.Values)
+                            writer.WriteLine(format, property.Name, valueItem);
+                    }
+                    else
+                    {
+                        writer.WriteLine(format, property.Name, property.Value);
+                    }
                 }
 
                 writer.WriteLine();

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using NUnit.Framework;
 
@@ -14,6 +15,25 @@ namespace IniFile.Tests
             Assert.That(iniFile.Section("Foo").Get("baz"), Is.EqualTo("qux"));
 
             Assert.That(iniFile.Section("Lol").Get("rofl"), Is.EqualTo("copter"));
+        }
+
+        [Test]
+        public void TestLoadDuplicateKeys()
+        {
+            var iniFile = new IniFile(new StringReader(@"
+[Foo]
+bar=1
+bar=2
+bar=3
+baz=qux
+[Lol]
+rofl = copter
+"), true);
+            Assert.That(iniFile.Section("Foo").Get("bar"), Is.EqualTo("1"));
+            Assert.That(iniFile.Section("Foo").Get("baz"), Is.EqualTo("qux"));
+
+            Assert.That(iniFile.Section("Lol").Get("rofl"), Is.EqualTo("copter"));
+            CollectionAssert.AreEqual(iniFile.Section("Foo").GetValues("bar"), new List<string>() { "1", "2", "3" });
         }
 
         [Test]
@@ -96,10 +116,24 @@ namespace IniFile.Tests
         }
 
         [Test]
+        public void TestSaveDuplicateKeys()
+        {
+            var tempFilename = Path.GetTempFileName();
+            var iniFile = new IniFile(true);
+            iniFile.Section("Foo").Comment = "This is foo";
+            iniFile.Section("Foo").Set("bar", "1");
+            iniFile.Section("Foo").Set("bar", "2");
+            iniFile.Section("Foo").Set("baz", "qux", comment: "bazy baz");
+            iniFile.Save(tempFilename);
+
+            Assert.That(File.ReadAllText(tempFilename), Is.EqualTo("# This is foo\r\n[Foo]\r\nbar=1\r\nbar=2\r\n# bazy baz\r\nbaz=qux\r\n\r\n"));
+        }
+
+        [Test]
         public void TestPadding()
         {
             var tempFilename = Path.GetTempFileName();
-            var iniFile = new IniFile {WriteSpacingBetweenNameAndValue = true};
+            var iniFile = new IniFile { WriteSpacingBetweenNameAndValue = true };
             iniFile.Section("Foo").Set("bar", "1");
             iniFile.Save(tempFilename);
 
@@ -132,7 +166,7 @@ namespace IniFile.Tests
             var iniFile = new IniFile();
             iniFile.Section("Foo").Comment = "Foo comment";
             iniFile.Section("Foo").Set("bar", "1", "Bar comment");
-            
+
             iniFile.Save(tempFilename);
 
             Assert.That(File.ReadAllText(tempFilename), Is.EqualTo("# Foo comment\r\n[Foo]\r\n# Bar comment\r\nbar=1\r\n\r\n"));
