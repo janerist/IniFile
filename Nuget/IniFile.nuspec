@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package
+    xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>IniFile</id>
+    <version>1.0.0.0</version>
+    <title>IniFile</title>
+    <authors>janerist</authors>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>
+     IniFile
+    </description>
+    <dependencies>
+     
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="..\IniFile\bin\Debug\IniFile.dll" target="lib\net45\IniFile.dll" />
+  </files>
+</package>
